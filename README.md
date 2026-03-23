@@ -1,4 +1,4 @@
-# Cure App (Team 4 in Huma Volve Round 7)
+# Cure App
 
 A comprehensive mobile healthcare solution built with Flutter, focusing on performance, scalability, and clean code practices.
 
