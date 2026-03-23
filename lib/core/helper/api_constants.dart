@@ -6,17 +6,13 @@ class ApiConstant {
   static const String updateProfile = "api/profile/Editprofile/updateprofile";
   static const String faq = "api/profile/faq";
   static const String logout = "/api/Identity/Accounts/logout";
-
   //TODO: base Url
   static const String baseUrl = "https://cure-doctor-booking.runasp.net/";
-
   //TODO: Doctor Details Logic EndPoint
   static const String doctorDetailsEndPoint =
       "api/Customer/Doctors/DoctorDetails";
-
   //TODO: Pay Logic Endpoint
   static const String payEndPoint = "api/Customer/Booking/CreateBooking";
-
   //TODO: Review Logic Endpoint
   static const String getReviewsByDoctorEndPoint =
       "api/Customer/Reviews/GetReviewsByDoctor";

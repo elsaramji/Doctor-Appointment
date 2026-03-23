@@ -7,7 +7,6 @@ import 'package:round_7_mobile_cure_team4/features/HomePage/Presentation/cubit/d
 import 'package:round_7_mobile_cure_team4/features/HomePage/Presentation/cubit/location/user_location.dart';
 import 'package:round_7_mobile_cure_team4/features/Search/presentation/cubit/history_cubit.dart';
 import 'package:round_7_mobile_cure_team4/features/profile/presentation/cubit/profile_cubit.dart';
-
 import 'core/routes/app_router.dart';
 import 'core/themes/app_theme.dart';
 import 'features/HomePage/Presentation/cubit/favorite/favorite_cubit.dart';
