@@ -48,4 +48,4 @@ Test the app on your Android device:
 4. Run the app: `flutter run`.
 
 ---
-*Built with ❤️ by Team 4 In Huma Volve Round 7*
+*Built with ❤️ by Team In Huma Volve *
