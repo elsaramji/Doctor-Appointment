@@ -27,7 +27,6 @@ import 'package:round_7_mobile_cure_team4/features/doctor_details/domain/entitie
 import 'package:round_7_mobile_cure_team4/features/doctor_details/presentation/pages/doctor_details_page.dart';
 import 'package:round_7_mobile_cure_team4/features/notifications/presentation/pages/notification_page.dart';
 import 'package:round_7_mobile_cure_team4/features/onboarding/presentation/pages/onboarding_page.dart';
-import 'package:round_7_mobile_cure_team4/features/pay/presentation/cubit/pay_cubit.dart';
 import 'package:round_7_mobile_cure_team4/features/pay/presentation/pages/pay_page.dart';
 import 'package:round_7_mobile_cure_team4/features/payment/presentation/add_new_card.dart';
 import 'package:round_7_mobile_cure_team4/features/payment/presentation/empty_card.dart';
@@ -157,10 +156,9 @@ class AppRouter {
             path: AppRoutes.profile,
             builder: (context, state) => BlocProvider.value(
               value: getIt<ProfileCubit>()..fetchProfile(),
-              child:  ProfileScreen(),
+              child: ProfileScreen(),
             ),
-          )
-
+          ),
         ],
       ),
 
@@ -196,8 +194,13 @@ class AppRouter {
 
           final String phoneNumber = extra['phone'];
           final bool isLogin = extra['isLogin'];
+          final String email = extra['email'];
 
-          return OtpPage(phoneNumber: phoneNumber, isLogin: isLogin);
+          return OtpPage(
+            phoneNumber: phoneNumber,
+            isLogin: isLogin,
+            email: email,
+          );
         },
       ),
 
@@ -279,9 +282,7 @@ class AppRouter {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           if (extra == null || !extra.containsKey('booking')) {
-            return Scaffold(
-              body: Center(child: Text('Missing booking data')),
-            );
+            return Scaffold(body: Center(child: Text('Missing booking data')));
           }
           final booking = extra['booking'] as BookingEntity;
           return ReschedulePage(doctor: booking);
@@ -327,7 +328,6 @@ class AppRouter {
         ),
       ),
 
-  
       GoRoute(
         path: AppRoutes.addNewCard,
         builder: (context, state) {

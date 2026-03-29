@@ -1,25 +1,17 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/domain/entities/auth_response.dart';
+import '../../../data/models/auth_model.dart';
 
-part 'register_state.freezed.dart';
+sealed class RegisterState {}
 
-@freezed
-abstract class RegisterState with _$RegisterState {
-  const factory RegisterState.initial({
-    @Default(false) bool isRememberMe,
-  }) = _RegisterInitial;
+class RegisterInitial extends RegisterState {}
 
-  const factory RegisterState.loading({
-    @Default(false) bool isRememberMe,
-  }) = _RegisterLoading;
+class RegisterLoading extends RegisterState {}
 
-  const factory RegisterState.success({
-    required AuthResponseEntity response,
-    @Default(false) bool isRememberMe,
-  }) = _RegisterSuccess;
+class RegisterSuccess extends RegisterState {
+  final AuthModel response;
+  RegisterSuccess(this.response);
+}
 
-  const factory RegisterState.failure({
-    required String message,
-    @Default(false) bool isRememberMe,
-  }) = _RegisterFailure;
+class RegisterFailure extends RegisterState {
+  final String message;
+  RegisterFailure(this.message);
 }

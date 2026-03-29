@@ -2,10 +2,8 @@ import 'package:injectable/injectable.dart';
 import 'package:round_7_mobile_cure_team4/core/helper/api_constants.dart';
 import 'package:round_7_mobile_cure_team4/core/helper/dio_helper.dart';
 import 'package:round_7_mobile_cure_team4/core/helper/token_storage.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/data/models/register_model/register_request_model.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/data/models/auth_model/auth_response_model.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/data/models/verify_model/verify_request_model.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/data/models/verify_model/verify_response_model.dart';
+
+import '../models/auth_model.dart';
 
 @LazySingleton()
 class AuthApiCall {
@@ -15,52 +13,78 @@ class AuthApiCall {
   AuthApiCall(this._dioHelper);
 
   /// Register API Call
-  Future<AuthResponseModel> registerApiCall(
-    RegisterRequestModel registerModel,
+  Future<AuthModel> registerApiCall(
+    String phoneNumber,
+    String name,
+    String email,
   ) async {
     try {
       final response = await _dioHelper.postRequest(
         ApiConstant.registerEndPoint,
-        registerModel.toJson(),
+        {"fullName": name, "phoneNumber": "+2$phoneNumber", "email": email},
       );
 
-      return AuthResponseModel.fromJson(response?.data);
+      return AuthModel.fromJson(response?.data);
     } catch (e) {
       rethrow;
     }
   }
 
   /// Login API Call
-  Future<AuthResponseModel> loginApiCall(String phoneNumber) async {
+  Future<AuthModel> loginApiCall(String phoneNumber) async {
     try {
       final response = await _dioHelper.postRequest(ApiConstant.loginEndPoint, {
         "phoneNumber": phoneNumber,
       });
 
-      return AuthResponseModel.fromJson(response?.data);
+      return AuthModel.fromJson(response?.data);
     } catch (e) {
       rethrow;
     }
   }
 
-  /// Verify OTP API Call
+  /// login verify otp API Call
 
-  Future<VerifyResponseModel> verifyOtpApiCall(
-    VerifyRequestModel verifyModel,
+  Future<AuthModel> verifyOtpApiCall(
+    String phoneNumber,
+    String otp,
     String endpoint,
   ) async {
     try {
-      final response = await _dioHelper.postRequest(
-        endpoint,
-        verifyModel.toJson(),
+      final response = await _dioHelper.postRequest(endpoint, {
+        "phoneNumber": "+2$phoneNumber",
+        "otp": otp,
+      });
+      final result = AuthModel.fromJson(response?.data);
+      await _tokenStorage.saveTokens(
+        result.data!.token,
+        result.data!.refreshToken,
       );
+      return result;
+    } catch (e) {
+      rethrow;
+    }
+  }
 
-      final model = VerifyResponseModel.fromJson(response?.data);
-      final entity = model.toEntity();
-
-      await _tokenStorage.saveTokens(entity.accessToken, entity.refreshToken);
-
-      return model;
+  // verify otp for register
+  Future<AuthModel> verifyOtpRegisterApiCall(
+    String phoneNumber,
+    String otp,
+    String email,
+    String endpoint,
+  ) async {
+    try {
+      final response = await _dioHelper.postRequest(endpoint, {
+        "phoneNumber": "+2$phoneNumber",
+        "otpNumber": otp,
+        "email": email,
+      });
+      final result = AuthModel.fromJson(response?.data);
+      await _tokenStorage.saveTokens(
+        result.data!.token,
+        result.data!.refreshToken,
+      );
+      return result;
     } catch (e) {
       rethrow;
     }

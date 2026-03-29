@@ -13,13 +13,18 @@ import 'package:round_7_mobile_cure_team4/features/auth/presentation/cubit/verif
 import 'package:round_7_mobile_cure_team4/features/auth/presentation/widget/custom_buttons.dart';
 import 'package:round_7_mobile_cure_team4/features/auth/presentation/widget/lottie_dailog.dart';
 import 'package:round_7_mobile_cure_team4/features/auth/presentation/widget/register_shimmer.dart';
-import '../../domain/entities/verify_entity/verify_request_entity.dart';
 
 class OtpPage extends StatelessWidget {
   final String phoneNumber;
+  final String email;
   final bool isLogin;
 
-  const OtpPage({super.key, required this.phoneNumber, required this.isLogin});
+  const OtpPage({
+    super.key,
+    required this.phoneNumber,
+    required this.isLogin,
+    required this.email,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +51,7 @@ class OtpPage extends StatelessWidget {
         body: _OtpPageBody(
           phoneNumber: phoneNumber,
           isLogin: isLogin,
+          email: email,
         ),
       ),
     );
@@ -54,9 +60,14 @@ class OtpPage extends StatelessWidget {
 
 class _OtpPageBody extends StatefulWidget {
   final String phoneNumber;
+  final String email;
   final bool isLogin;
 
-  const _OtpPageBody({required this.phoneNumber, required this.isLogin});
+  const _OtpPageBody({
+    required this.phoneNumber,
+    required this.isLogin,
+    required this.email,
+  });
 
   @override
   State<_OtpPageBody> createState() => __OtpPageBodyState();
@@ -88,15 +99,10 @@ class __OtpPageBodyState extends State<_OtpPageBody> {
       return;
     }
 
-    final request = VerifyRequestEntity(
-      phoneNumber: widget.phoneNumber,
-      otpNumber: otp,
-    );
-
     if (widget.isLogin) {
-      cubit.verifyLoginOtp(request);
+      cubit.verifyLoginOtp(widget.phoneNumber, otp);
     } else {
-      cubit.verifySignUpOtp(request);
+      cubit.verifySignUpOtp(widget.phoneNumber, otp, widget.email);
     }
   }
 
@@ -104,47 +110,27 @@ class __OtpPageBodyState extends State<_OtpPageBody> {
   Widget build(BuildContext context) {
     return BlocListener<VerifyCubit, VerifyState>(
       listener: (context, state) {
-        state.whenOrNull(
-          loginSuccess: (_) {
-            context.go(AppRoutes.home);
-          },
-          signUpSuccess: (_) {
-            context.go(AppRoutes.home);
-          },
-          loginFailure: (error) {
-            showAnimatedCustomDialog(
-              context: context,
-              image: LottieImages.error,
-              message: error,
-              isSuccess: false,
-            );
-          },
-          signUpFailure: (error) {
-            showAnimatedCustomDialog(
-              context: context,
-              image: LottieImages.error,
-              message: error,
-              isSuccess: false,
-            );
-          },
-        );
+        if (state is VerifySuccess) {
+          context.go(AppRoutes.home);
+        } else if (state is VerifyFailure) {
+          showAnimatedCustomDialog(
+            context: context,
+            image: LottieImages.error,
+            message: state.message,
+            isSuccess: false,
+          );
+        }
       },
       child: BlocBuilder<VerifyCubit, VerifyState>(
         builder: (context, state) {
           int secondsRemaining = 60;
           bool canResend = false;
-          bool isLoading = state.maybeWhen(
-            loginLoading: () => true,
-            signUpLoading: () => true,
-            orElse: () => false,
-          );
+          bool isLoading = state is VerifyLoading;
 
-          state.whenOrNull(
-            timerUpdated: (seconds, resend) {
-              secondsRemaining = seconds;
-              canResend = resend;
-            },
-          );
+          if (state is VerifyTimerUpdated) {
+            secondsRemaining = state.secondsRemaining;
+            canResend = state.canResend;
+          }
 
           return _buildOtpForm(context, secondsRemaining, canResend, isLoading);
         },
@@ -153,11 +139,11 @@ class __OtpPageBodyState extends State<_OtpPageBody> {
   }
 
   Widget _buildOtpForm(
-      BuildContext context,
-      int secondsRemaining,
-      bool canResend,
-      bool isLoading,
-      ) {
+    BuildContext context,
+    int secondsRemaining,
+    bool canResend,
+    bool isLoading,
+  ) {
     final maskedNumber =
         '+${widget.phoneNumber.substring(0, 6)}***${widget.phoneNumber.substring(widget.phoneNumber.length - 2)}';
 
@@ -203,64 +189,60 @@ class __OtpPageBodyState extends State<_OtpPageBody> {
                   : null,
               child: canResend
                   ? RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "Resend  ",
-                      style: RegularMontserrat.regularMontserrat14.copyWith(
-                        color: AppColors.primary500,
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "Resend  ",
+                            style: RegularMontserrat.regularMontserrat14
+                                .copyWith(color: AppColors.primary500),
+                          ),
+                          TextSpan(
+                            text: "or",
+                            style: RegularMontserrat.regularMontserrat14
+                                .copyWith(color: AppColors.black),
+                          ),
+                          TextSpan(
+                            text: "  Enter another phone number",
+                            style: RegularMontserrat.regularMontserrat14
+                                .copyWith(color: AppColors.primary500),
+                          ),
+                        ],
                       ),
-                    ),
-                    TextSpan(
-                      text: "or",
-                      style: RegularMontserrat.regularMontserrat14.copyWith(
-                        color: AppColors.black,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "  Enter another phone number",
-                      style: RegularMontserrat.regularMontserrat14.copyWith(
-                        color: AppColors.primary500,
-                      ),
-                    ),
-                  ],
-                ),
-              )
+                    )
                   : RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "Resend Code in ",
-                      style: RegularMontserrat.regularMontserrat14.copyWith(
-                        color: AppColors.black,
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "Resend Code in ",
+                            style: RegularMontserrat.regularMontserrat14
+                                .copyWith(color: AppColors.black),
+                          ),
+                          TextSpan(
+                            text: secondsRemaining.toString().padLeft(2, '0'),
+                            style: RegularMontserrat.regularMontserrat14
+                                .copyWith(
+                                  color: AppColors.primary500,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          TextSpan(
+                            text: " Sec",
+                            style: RegularMontserrat.regularMontserrat14
+                                .copyWith(color: AppColors.black),
+                          ),
+                        ],
                       ),
                     ),
-                    TextSpan(
-                      text: secondsRemaining.toString().padLeft(2, '0'),
-                      style: RegularMontserrat.regularMontserrat14.copyWith(
-                        color: AppColors.primary500,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextSpan(
-                      text: " Sec",
-                      style: RegularMontserrat.regularMontserrat14.copyWith(
-                        color: AppColors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
             SizedBox(height: 32.h),
             isLoading
                 ? const ButtonShimmer()
                 : CustomButtons(
-              text: "Verify",
-              onPressed: () {
-                _verifyOtp(context);
-              },
-            ),
+                    text: "Verify",
+                    onPressed: () {
+                      _verifyOtp(context);
+                    },
+                  ),
           ],
         ),
       ),

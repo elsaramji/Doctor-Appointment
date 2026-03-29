@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:round_7_mobile_cure_team4/core/di/di.dart';
 import 'package:round_7_mobile_cure_team4/core/helper/assets.dart';
 import 'package:round_7_mobile_cure_team4/core/routes/app_router.dart';
 import 'package:round_7_mobile_cure_team4/core/shared_widget/custom_text_filed.dart';
@@ -11,7 +12,6 @@ import 'package:round_7_mobile_cure_team4/features/auth/presentation/cubit/regis
 import 'package:round_7_mobile_cure_team4/features/auth/presentation/cubit/register_cubit/register_state.dart';
 import 'package:round_7_mobile_cure_team4/features/auth/presentation/widget/custom_buttons.dart';
 import 'package:round_7_mobile_cure_team4/features/auth/presentation/widget/custom_phone_field.dart';
-import 'package:round_7_mobile_cure_team4/core/di/di.dart';
 import 'package:round_7_mobile_cure_team4/features/auth/presentation/widget/lottie_dailog.dart';
 import 'package:round_7_mobile_cure_team4/features/auth/presentation/widget/register_shimmer.dart';
 
@@ -24,43 +24,37 @@ class RegisterPage extends StatelessWidget {
       create: (_) => getIt<RegisterCubit>(),
       child: BlocListener<RegisterCubit, RegisterState>(
         listener: (context, state) {
-          state.when(
-            initial: (_) {},
-            loading: (_) {},
-
-            success: (response, _) {
-              final cubit = context.read<RegisterCubit>();
-
-              final isSuccess = response.success == true;
-              showAnimatedCustomDialog(
-                context: context,
-                nextRoute: isSuccess ? AppRoutes.otp : AppRoutes.signup,
-                image: isSuccess ? LottieImages.success : LottieImages.error,
-                title: isSuccess ? 'User created!' : response.message ?? 'Error',
-                message: isSuccess
-                    ? 'Go to OTP page to verify your account'
-                    : 'Please try again',
-                extra: isSuccess
-                    ? {
-                  'phone': cubit.phoneController.text.trim(),
-                  'isLogin': false,
-                }
-                    : null,
-                isSuccess: isSuccess,
-              );
-            },
-
-            failure: (message, _) {
-              showAnimatedCustomDialog(
-                context: context,
-                nextRoute: AppRoutes.signup,
-                image: LottieImages.error,
-                title: message,
-                message: 'Please try again',
-                isSuccess: false,
-              );
-            },
-          );
+          if (state is RegisterSuccess) {
+            final cubit = context.read<RegisterCubit>();
+            final response = state.response;
+            final isSuccess = response.success;
+            showAnimatedCustomDialog(
+              context: context,
+              nextRoute: isSuccess ? AppRoutes.otp : AppRoutes.signup,
+              image: isSuccess ? LottieImages.success : LottieImages.error,
+              title: isSuccess ? 'User created!' : response.message,
+              message: isSuccess
+                  ? 'Go to OTP page to verify your account'
+                  : 'Please try again',
+              extra: isSuccess
+                  ? {
+                      'phone': cubit.phoneController.text.trim(),
+                      'email': cubit.emailController.text.trim(),
+                      'isLogin': false,
+                    }
+                  : null,
+              isSuccess: isSuccess,
+            );
+          } else if (state is RegisterFailure) {
+            showAnimatedCustomDialog(
+              context: context,
+              nextRoute: AppRoutes.signup,
+              image: LottieImages.error,
+              title: state.message,
+              message: 'Please try again',
+              isSuccess: false,
+            );
+          }
         },
         child: _RegisterForm(),
       ),
@@ -116,9 +110,12 @@ class _RegisterForm extends StatelessWidget {
               CustomTextField(
                 hint: 'Full name',
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) return "Name is required";
-                  if (value.trim().length < 2) return "Name must be at least 2 characters";
-                  if (!RegExp(r"^[a-zA-Z\s]+$").hasMatch(value.trim())) return "Name can only contain letters and spaces";
+                  if (value == null || value.trim().isEmpty)
+                    return "Name is required";
+                  if (value.trim().length < 2)
+                    return "Name must be at least 2 characters";
+                  if (!RegExp(r"^[a-zA-Z\s]+$").hasMatch(value.trim()))
+                    return "Name can only contain letters and spaces";
                   return null;
                 },
                 controller: cubit.nameController,
@@ -149,11 +146,9 @@ class _RegisterForm extends StatelessWidget {
                   BlocBuilder<RegisterCubit, RegisterState>(
                     builder: (context, state) {
                       return Checkbox(
-                        value: state.isRememberMe,
+                        value: cubit.isRememberMe,
                         activeColor: AppColors.primary500,
-                        onChanged: (val) {
-                          if (val != null) cubit.toggleRememberMe(val);
-                        },
+                        onChanged: (val) {},
                         side: BorderSide(
                           color: AppColors.primary500,
                           width: 1.5,
@@ -173,16 +168,20 @@ class _RegisterForm extends StatelessWidget {
               SizedBox(height: 24.h),
               BlocBuilder<RegisterCubit, RegisterState>(
                 builder: (context, state) {
-                  return state.maybeWhen(
-                    loading: (_) => const ButtonShimmer(),
-                    orElse: () => CustomButtons(
-                      text: "Sign up",
-                      onPressed: () {
-                        if (cubit.formKey.currentState?.validate() ?? false) {
-                          cubit.register();
-                        }
-                      },
-                    ),
+                  if (state is RegisterLoading) {
+                    return const ButtonShimmer();
+                  }
+                  return CustomButtons(
+                    text: "Sign up",
+                    onPressed: () {
+                      if (cubit.formKey.currentState?.validate() ?? false) {
+                        cubit.register(
+                          phoneNumber: cubit.phoneController.text.trim(),
+                          name: cubit.nameController.text.trim(),
+                          email: cubit.emailController.text.trim(),
+                        );
+                      }
+                    },
                   );
                 },
               ),

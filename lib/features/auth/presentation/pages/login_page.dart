@@ -24,62 +24,58 @@ class LoginPage extends StatelessWidget {
       create: (_) => getIt<LoginCubit>(),
       child: Scaffold(
         backgroundColor: AppColors.white,
-        body: BlocConsumer<LoginCubit, LoginState>(
+        body: BlocConsumer<LoginCubit, AuthState>(
           listener: (context, state) {
-            state.when(
-              initial: () {},
-              loading: () {},
-              success: (response) {
-                final isSuccess = response.success == true;
+            if (state is AuthSuccess) {
+              final response = state.response;
+              final isSuccess = response.success;
 
-                final String? nextRoute = isSuccess ? AppRoutes.otp : null;
+              final String? nextRoute = isSuccess ? AppRoutes.otp : null;
 
-                final String dialogTitle = isSuccess ? 'Login successful!' : 'Operation Failed';
-                final String dialogMessage = isSuccess
-                    ? 'Go to OTP page to verify your account'
-                    : response.message ?? 'Please check your information and try again.';
+              final String dialogTitle = isSuccess
+                  ? 'Login successful!'
+                  : 'Operation Failed';
+              final String dialogMessage = isSuccess
+                  ? 'Go to OTP page to verify your account'
+                  : response.message;
 
-                showAnimatedCustomDialog(
-                  context: context,
-                  nextRoute: nextRoute,
-                  image: isSuccess ? LottieImages.success : LottieImages.error,
-                  title: dialogTitle,
-                  message: dialogMessage,
-                  extra: isSuccess
-                      ? {
-                    'phone': context
-                        .read<LoginCubit>()
-                        .phoneController
-                        .text
-                        .trim(),
-                    'isLogin': true,
-                  }
-                      : null,
-                  isSuccess: isSuccess,
-                );
-              },
-              failure: (message) {
-                showAnimatedCustomDialog(
-                  context: context,
-                  image: LottieImages.error,
-                  title: 'Network Error',
-                  message: message,
-                  isSuccess: false,
-                );
-              },
-            );
+              showAnimatedCustomDialog(
+                context: context,
+                nextRoute: nextRoute,
+                image: isSuccess ? LottieImages.success : LottieImages.error,
+                title: dialogTitle,
+                message: dialogMessage,
+                extra: isSuccess
+                    ? {
+                        'phone': context
+                            .read<LoginCubit>()
+                            .phoneController
+                            .text
+                            .trim(),
+                        'isLogin': true,
+                        'email': "",
+                      }
+                    : null,
+                isSuccess: isSuccess,
+              );
+            } else if (state is AuthFailure) {
+              showAnimatedCustomDialog(
+                context: context,
+                image: LottieImages.error,
+                title: 'Network Error',
+                message: state.message,
+                isSuccess: false,
+              );
+            }
           },
           builder: (context, state) {
             final cubit = context.read<LoginCubit>();
-            final isLoading = state.maybeWhen(loading: () => true, orElse: () => false);
+            final isLoading = state is AuthLoading;
 
             return SafeArea(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                  vertical: 24.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
                 child: Form(
                   key: cubit.formKey,
                   child: Column(
@@ -107,15 +103,16 @@ class LoginPage extends StatelessWidget {
                       isLoading
                           ? const ButtonShimmer()
                           : CustomButtons(
-                        text: "Sign in with your Phone Number",
-                        onPressed: () {
-                          if (cubit.formKey.currentState?.validate() ??
-                              false) {
-                            final phone = cubit.phoneController.text.trim();
-                            cubit.login(phone);
-                          }
-                        },
-                      ),
+                              text: "Sign in with your Phone Number",
+                              onPressed: () {
+                                if (cubit.formKey.currentState?.validate() ??
+                                    false) {
+                                  final phone = cubit.phoneController.text
+                                      .trim();
+                                  cubit.login(phone);
+                                }
+                              },
+                            ),
 
                       SizedBox(height: 32.h),
                       Row(
@@ -148,8 +145,9 @@ class LoginPage extends StatelessWidget {
                           ),
                           label: Text(
                             "Sign in with Google",
-                            style: MediumMontserrat.mediumMontserrat14
-                                .copyWith(color: AppColors.secondary200),
+                            style: MediumMontserrat.mediumMontserrat14.copyWith(
+                              color: AppColors.secondary200,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 14.h),

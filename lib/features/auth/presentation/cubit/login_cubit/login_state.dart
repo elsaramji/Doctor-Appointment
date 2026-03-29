@@ -1,19 +1,17 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/domain/entities/auth_response.dart';
+import '../../../data/models/auth_model.dart';
 
-part 'login_state.freezed.dart';
+sealed class AuthState {}
 
-@freezed
-abstract class LoginState with _$LoginState {
-  const factory LoginState.initial() = LoginStateInitial;
+class AuthInitial extends AuthState {}
 
-  const factory LoginState.loading() = LoginStateLoading;
+class AuthLoading extends AuthState {}
 
-  const factory LoginState.success({
-    required AuthResponseEntity response,
-  }) = LoginStateSuccess;
+class AuthSuccess extends AuthState {
+  final AuthModel response;
+  AuthSuccess(this.response);
+}
 
-  const factory LoginState.failure({
-    required String message,
-  }) = LoginStateFailure;
+class AuthFailure extends AuthState {
+  final String message;
+  AuthFailure(this.message);
 }

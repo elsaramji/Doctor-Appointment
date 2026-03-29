@@ -1,28 +1,22 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/domain/entities/verify_entity/verify_response_entity.dart';
+sealed class VerifyState {}
 
-part 'verify_state.freezed.dart';
-@freezed
-class VerifyState with _$VerifyState {
-  const factory VerifyState.initial() = _Initial;
+class VerifyInitial extends VerifyState {}
 
-  const factory VerifyState.loginLoading() = _LoginLoading;
+class VerifyLoading extends VerifyState {}
 
-  const factory VerifyState.loginFailure(String message) = _LoginFailure;
+class VerifyTimerUpdated extends VerifyState {
+  final int secondsRemaining;
+  final bool canResend;
 
-  const factory VerifyState.loginSuccess({VerifyResponseEntity? response}) =
-      _LoginSuccess;
+  VerifyTimerUpdated(this.secondsRemaining, {this.canResend = false});
+}
 
-  const factory VerifyState.signUpLoading() = _SignUpLoading;
+class VerifySuccess extends VerifyState {
+  final String token;
+  VerifySuccess(this.token);
+}
 
-  const factory VerifyState.signUpFailure(String message) = _SignUpFailure;
-
-  const factory VerifyState.signUpSuccess({VerifyResponseEntity? response}) =
-      _SignUpSuccess;
-
-  // Timer state
-  const factory VerifyState.timerUpdated(
-    int secondsRemaining, {
-    required bool canResend,
-  }) = _TimerUpdated;
+class VerifyFailure extends VerifyState {
+  final String message;
+  VerifyFailure(this.message);
 }

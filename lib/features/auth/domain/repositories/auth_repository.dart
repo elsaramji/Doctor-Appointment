@@ -1,22 +1,24 @@
 import 'package:dartz/dartz.dart';
 import 'package:round_7_mobile_cure_team4/core/errors/errors.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/domain/entities/auth_response.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/domain/entities/register_entity.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/domain/entities/verify_entity/verify_request_entity.dart';
-import 'package:round_7_mobile_cure_team4/features/auth/domain/entities/verify_entity/verify_response_entity.dart';
+import 'package:round_7_mobile_cure_team4/features/auth/data/models/auth_model.dart';
 
 abstract class AuthRepository {
-  Future<Either<Failure, AuthResponseEntity>> login(String phoneNumber);
+  Future<Either<Failure, AuthModel>> login(String phoneNumber);
 
-  Future<Either<Failure, VerifyResponseEntity>> verifyLoginOtp(
-    VerifyRequestEntity request,
+  Future<Either<Failure, AuthModel>> verifyLoginOtp(
+    String phoneNumber,
+    String otp,
   );
 
-  Future<Either<Failure, AuthResponseEntity>> register(
-    RegisterRequestEntity requestEntity,
+  Future<Either<Failure, AuthModel>> register(
+    String phoneNumber,
+    String name,
+    String email,
   );
 
-  Future<Either<Failure, VerifyResponseEntity>> verifyRegisterOtp(
-    VerifyRequestEntity request,
+  Future<Either<Failure, AuthModel>> verifyRegisterOtp(
+    String phoneNumber,
+    String otp,
+    String email,
   );
 }
